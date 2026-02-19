@@ -1,9 +1,11 @@
 package org.sms.studentservice.service;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.sms.studentservice.dto.StudentDto;
 import org.sms.studentservice.dto.param.StudentParam;
-import org.sms.studentservice.entity.Student;
 import org.sms.studentservice.enums.StudentStatus;
+import org.sms.studentservice.exception.ResourceNotFoundException;
 import org.sms.studentservice.mapper.StudentMapper;
 import org.sms.studentservice.repo.StudentRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class StudentServiceImpl implements StudentService{
 
     @Autowired
@@ -20,8 +24,7 @@ public class StudentServiceImpl implements StudentService{
 
     @Autowired
     private StudentRepo studentRepo;
-    @Autowired
-    private RepositoryMetricsAutoConfiguration repositoryMetricsAutoConfiguration;
+
 
     @Override
     public StudentDto createStudent(StudentParam req) {
@@ -34,22 +37,24 @@ public class StudentServiceImpl implements StudentService{
 
     @Override
     public StudentDto getStudentById(Long id) {
-        return studentMapper.entityToDto(studentRepo.findById(id).orElseThrow());
+        return studentMapper.entityToDto(studentRepo.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("No student found with id "+id)));
     }
 
     @Override
     public StudentDto getStudentByEmail(String email) {
-        return studentMapper.entityToDto(studentRepo.findByEmail(email).orElseThrow());
+        return studentMapper.entityToDto(studentRepo.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("No student found with id "+email)));
     }
 
     @Override
     public StudentDto getStudentByStudentId(String studentId) {
-        return null;
+        return studentMapper.entityToDto(studentRepo.findByStudentId(studentId)
+                .orElseThrow(()->new ResourceNotFoundException("No student found with student id "+ studentId)));
     }
 
     @Override
     public List<StudentDto> getAllStudents() {
-        return List.of();
+        return studentMapper.entitytoDtoList(studentRepo.findAll());
     }
 
     @Override
